@@ -3,33 +3,33 @@ use std::io::{self, Write};
 use std::vec;
 use std::{cell::RefCell, rc::Rc};
 
-trait Interface {
+trait StoppableInterface {
     fn stop(&mut self);
     fn is_running(&self) -> bool;
 }
 
-trait Handler<T: Interface> {
+trait InputHandler<T: StoppableInterface> {
     fn handle(&self, input: &String) -> Option<String>;
 }
 
-struct CommandLineInterface<T: Interface> {
+struct CommandLineInterface<T: StoppableInterface> {
     prefix: String,
     welcome_message: String,
-    handlers: Vec<Box<dyn Handler<T>>>,
+    handlers: Vec<Box<dyn InputHandler<T>>>,
     interface: Rc<RefCell<T>>,
 }
 
 struct UndefinedInputHandler;
-impl<T: Interface> Handler<T> for UndefinedInputHandler {
+impl<T: StoppableInterface> InputHandler<T> for UndefinedInputHandler {
     fn handle(&self, input: &String) -> Option<String> {
         return Some(String::from("Undefined input: ") + input);
     }
 }
 
-struct ExitHandler<T: Interface> {
+struct ExitHandler<T: StoppableInterface> {
     interface: Rc<RefCell<T>>,
 }
-impl<T: Interface> Handler<T> for ExitHandler<T> {
+impl<T: StoppableInterface> InputHandler<T> for ExitHandler<T> {
     fn handle(&self, input: &String) -> Option<String> {
         let exit_command = String::from("exit");
         match input.cmp(&exit_command) {
@@ -42,7 +42,7 @@ impl<T: Interface> Handler<T> for ExitHandler<T> {
     }
 }
 
-impl<T: Interface> CommandLineInterface<T> {
+impl<T: StoppableInterface> CommandLineInterface<T> {
     fn run(&self) -> () {
         println!("{}", self.welcome_message);
         while (*self.interface.borrow_mut()).is_running() {
@@ -72,7 +72,7 @@ impl<T: Interface> CommandLineInterface<T> {
     fn new(
         prefix: String,
         welcome_message: String,
-        handlers: Vec<Box<dyn Handler<T>>>,
+        handlers: Vec<Box<dyn InputHandler<T>>>,
         interface: Rc<RefCell<T>>,
     ) -> CommandLineInterface<T> {
         let mut mutable_handlers = handlers;
@@ -91,7 +91,7 @@ struct Counter {
     running: bool,
 }
 
-impl Interface for Counter {
+impl StoppableInterface for Counter {
     fn stop(&mut self) {
         self.running = false;
     }
@@ -118,7 +118,7 @@ struct IncreaseHandler {
     counter: Rc<RefCell<Counter>>,
 }
 
-impl Handler<Counter> for IncreaseHandler {
+impl InputHandler<Counter> for IncreaseHandler {
     fn handle(&self, input: &String) -> Option<String> {
         let plus = String::from("++");
         match input.cmp(&plus) {
@@ -135,7 +135,7 @@ struct DecreaseHandler {
     counter: Rc<RefCell<Counter>>,
 }
 
-impl Handler<Counter> for DecreaseHandler {
+impl InputHandler<Counter> for DecreaseHandler {
     fn handle(&self, input: &String) -> Option<String> {
         let plus = String::from("--");
         match input.cmp(&plus) {
@@ -152,7 +152,7 @@ struct GetValueHandler {
     counter: Rc<RefCell<Counter>>,
 }
 
-impl Handler<Counter> for GetValueHandler {
+impl InputHandler<Counter> for GetValueHandler {
     fn handle(&self, input: &String) -> Option<String> {
         let plus = String::from("??");
         match input.cmp(&plus) {
