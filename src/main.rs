@@ -32,24 +32,40 @@ mod parse {
 }
 
 impl Holmes {
-    fn reduce(&mut self) {
-        let last_fact = {
-            match self.facts.last() {
-                Some(f) => f,
-                None => panic!("Can not reduce with last: no facts were added"),
-            }
-        };
-        let mut new_facts: Vec<Box<logic::Statement>> = Vec::new();
-        for f in self.facts.iter() {
-            match logic::deduce(f.clone(), last_fact.clone()) {
-                Some(new_fact) => new_facts.push(new_fact),
-                None => match logic::deduce(last_fact.clone(), f.clone()) {
-                    Some(new_fact) => new_facts.push(new_fact),
-                    None => continue,
-                },
-            }
+    fn has_fact(&self, fact: Box<logic::Statement>) -> bool {
+        match self.facts.iter().position(|x| *x == fact) {
+            Some(_) => true,
+            None => false,
         }
-        self.facts.append(&mut new_facts);
+    }
+
+    fn reduce(&mut self) {
+        let mut added = true;
+        while added {
+            // println!("Has: {:?}", self.facts);
+            let mut new_facts: Vec<Box<logic::Statement>> = Vec::new();
+            for last_fact in self.facts.iter() {
+                for f in self.facts.iter() {
+                    match logic::deduce(f.clone(), last_fact.clone()) {
+                        Some(new_fact) => {
+                            if !self.has_fact(new_fact.clone()) {
+                                new_facts.push(new_fact)
+                            }
+                        }
+                        None => match logic::deduce(last_fact.clone(), f.clone()) {
+                            Some(new_fact) => {
+                                if !self.has_fact(new_fact.clone()) {
+                                    new_facts.push(new_fact)
+                                }
+                            }
+                            None => continue,
+                        },
+                    }
+                }
+            }
+            added = !new_facts.is_empty();
+            self.facts.append(&mut new_facts);
+        }
     }
     pub fn add_fact(&mut self, input: &str) -> String {
         match parse::parse_fact(input) {
@@ -63,10 +79,7 @@ impl Holmes {
     }
     pub fn ask(&self, input: &str) -> String {
         match parse::parse_fact(input) {
-            Some(fact) => match self.facts.iter().position(|x| *x == fact) {
-                Some(_) => String::from("True"),
-                None => String::from("False"),
-            },
+            Some(fact) => return self.has_fact(fact).to_string(),
             None => String::from("Can not parse input"),
         }
     }
