@@ -1,5 +1,5 @@
 mod logic {
-    #[derive(Debug, PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Debug)]
     pub enum Statement {
         Follows(Box<Statement>, Box<Statement>),
         Or(Box<Statement>, Box<Statement>),
@@ -10,9 +10,9 @@ mod logic {
 
     pub fn deduce(from: Box<Statement>, with: Box<Statement>) -> Option<Box<Statement>> {
         match *from {
-            Statement::Follows(stFrom, stFollow) => {
-                if stFrom == with {
-                    Some(stFollow)
+            Statement::Follows(st_from, st_follow) => {
+                if st_from == with {
+                    Some(st_follow)
                 } else {
                     None
                 }
@@ -44,8 +44,10 @@ mod logic {
 use logic::*;
 
 fn main() {
-    let x = follows(just("Rain"), just("Take an umbrella"));
-    let y = follows(just("Take an umbrella"), just("Buy an umbrella"));
-    let z = just("Rain");
-    println!("{:?}", deduce(x, z));
+    let if_rain_umbrella = follows(just("Rain"), just("Take an umbrella"));
+    let if_umbrella_buy = follows(just("Take an umbrella"), just("Buy an umbrella"));
+    let rain = just("Rain");
+    let umbrella = deduce(if_rain_umbrella, rain).unwrap();
+    let buy = deduce(if_umbrella_buy, umbrella).unwrap();
+    println!("{:?}", buy);
 }
