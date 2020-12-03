@@ -1,5 +1,7 @@
 # Holmes - deduction tool
 
+![Rust](https://github.com/Glebanister/holmes/workflows/Rust/badge.svg)
+
 ## Install
 
 First, make sure `git version`, `cargo version` works fine on your machine.
