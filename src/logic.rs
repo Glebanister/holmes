@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Statement {
     Follows(Box<Statement>, Box<Statement>),
     Or(Box<Statement>, Box<Statement>),

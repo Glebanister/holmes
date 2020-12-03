@@ -1,5 +1,5 @@
 [package]
-name = "oracul"
+name = "holmes"
 version = "0.1.0"
 authors = ["Glebanister <glebmar2001@gmail.com>"]
 edition = "2018"
