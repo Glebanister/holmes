@@ -40,18 +40,19 @@ Welcome to holmes!
 
 ### Deduction
 
-```java
->> ?pain
-false
->> !rain on the street -> pain in the soul
->> ?pain
-false
->> !rain -> rain on the street
->> !pain in the soul -> pain
->> ?pain
-false
->> !rain
->> ?pain
+```plain
+Welcome to holmes - deduction tool!
+~> help
+
+!<fact> : tell holmes that <fact> exists
+?<fact> : ask holmes if <fact> exists
+<fact> can be
+- a string literal (it's raining)
+- an implication of facts (it's raining -> take an umbrella)
+
+~> !it's raining
+~> !it's raining -> take an umbrella
+~> ?take an umbrella
 true
->>
+~> exit
 ```

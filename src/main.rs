@@ -147,8 +147,8 @@ fn main() {
         facts: Vec::new(),
     }));
     let holmes_interface = cli::CommandLineInterface::new(
-        String::from("🕵  "),
-        String::from("Welcome to holmes!"),
+        String::from("~> "),
+        String::from("Welcome to holmes - deduction tool!"),
         vec![
             Box::new(AddFactHandler {
                 holmes: holmes.clone(),
