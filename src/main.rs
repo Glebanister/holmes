@@ -1,90 +1,9 @@
+mod command_line_interface;
+
+use command_line_interface::{CommandLineInterface, ExitHandler, InputHandler, StoppableInterface};
+use std::cell::RefCell;
 use std::cmp;
-use std::io::{self, Write};
-use std::vec;
-use std::{cell::RefCell, rc::Rc};
-
-trait StoppableInterface {
-    fn stop(&mut self);
-    fn is_running(&self) -> bool;
-}
-
-trait InputHandler<T: StoppableInterface> {
-    fn handle(&self, input: &String) -> Option<String>;
-}
-
-struct CommandLineInterface<T: StoppableInterface> {
-    prefix: String,
-    welcome_message: String,
-    handlers: Vec<Box<dyn InputHandler<T>>>,
-    interface: Rc<RefCell<T>>,
-}
-
-struct UndefinedInputHandler;
-impl<T: StoppableInterface> InputHandler<T> for UndefinedInputHandler {
-    fn handle(&self, input: &String) -> Option<String> {
-        return Some(String::from("Undefined input: ") + input);
-    }
-}
-
-struct ExitHandler<T: StoppableInterface> {
-    interface: Rc<RefCell<T>>,
-}
-impl<T: StoppableInterface> InputHandler<T> for ExitHandler<T> {
-    fn handle(&self, input: &String) -> Option<String> {
-        let exit_command = String::from("exit");
-        match input.cmp(&exit_command) {
-            cmp::Ordering::Equal => {
-                self.interface.borrow_mut().stop();
-                return Some(String::new());
-            }
-            _ => return None,
-        }
-    }
-}
-
-impl<T: StoppableInterface> CommandLineInterface<T> {
-    fn run(&self) -> () {
-        println!("{}", self.welcome_message);
-        while (*self.interface.borrow_mut()).is_running() {
-            print!("{}", self.prefix);
-            io::stdout().flush().unwrap();
-            let s = {
-                let mut input_string = String::new();
-                io::stdin()
-                    .read_line(&mut input_string)
-                    .expect("Can not read from stdin");
-                input_string.trim().to_string()
-            };
-            for h in self.handlers.iter() {
-                match h.handle(&s) {
-                    None => continue,
-                    Some(return_value) => {
-                        if !return_value.is_empty() {
-                            println!("{}", return_value);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    fn new(
-        prefix: String,
-        welcome_message: String,
-        handlers: Vec<Box<dyn InputHandler<T>>>,
-        interface: Rc<RefCell<T>>,
-    ) -> CommandLineInterface<T> {
-        let mut mutable_handlers = handlers;
-        mutable_handlers.push(Box::new(UndefinedInputHandler));
-        return CommandLineInterface {
-            prefix: prefix,
-            welcome_message: welcome_message,
-            handlers: mutable_handlers,
-            interface: interface,
-        };
-    }
-}
+use std::rc::Rc;
 
 struct Counter {
     count: i32,
@@ -165,10 +84,8 @@ impl InputHandler<Counter> for GetValueHandler {
 }
 
 fn main() {
-    let counter = Rc::new(RefCell::new(Counter {
-        count: 0,
-        running: true,
-    }));
+    let running = true;
+    let counter = Rc::new(RefCell::new(Counter { count: 0, running }));
     let counter_interface = CommandLineInterface::new(
         String::from(">> "),
         String::from("Welcome to counter!"),
