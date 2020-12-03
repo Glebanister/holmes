@@ -42,7 +42,6 @@ impl Holmes {
     fn reduce(&mut self) {
         let mut added = true;
         while added {
-            // println!("Has: {:?}", self.facts);
             let mut new_facts: Vec<Box<logic::Statement>> = Vec::new();
             for last_fact in self.facts.iter() {
                 for f in self.facts.iter() {
@@ -113,6 +112,25 @@ impl cli::InputHandler<Holmes> for AskFactHandler {
     }
 }
 
+struct HelpHandler {}
+impl cli::InputHandler<Holmes> for HelpHandler {
+    fn handle(&self, input: &String) -> Option<String> {
+        if *input == String::from("help") {
+            Some(String::from(
+                "
+!<fact> : tell holmes that <fact> exists
+?<fact> : ask holmes if <fact> exists
+<fact> can be
+- a string literal (it's raining)
+- an implication of facts (it's raining -> take an umbrella)
+",
+            ))
+        } else {
+            None
+        }
+    }
+}
+
 impl cli::StoppableInterface for Holmes {
     fn stop(&mut self) {
         self.running = false;
@@ -129,7 +147,7 @@ fn main() {
         facts: Vec::new(),
     }));
     let holmes_interface = cli::CommandLineInterface::new(
-        String::from(">> "),
+        String::from("🕵  "),
         String::from("Welcome to holmes!"),
         vec![
             Box::new(AddFactHandler {
@@ -141,6 +159,7 @@ fn main() {
             Box::new(cli::ExitHandler {
                 interface: holmes.clone(),
             }),
+            Box::new(HelpHandler {}),
         ],
         holmes,
     );
